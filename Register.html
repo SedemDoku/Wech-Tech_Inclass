@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance - Register</title>
+    <style>
+        /* ========================================
+           GLOBAL STYLES & RESET
+           Removes default browser spacing and sets box-sizing
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url('Back.jpg') no-repeat center center fixed;
+            background-size: cover;
+            backdrop-filter: blur(5px);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* ========================================
+           CONTAINER STYLES
+           White box that holds the form
+           ======================================== */
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+        }
+
+        /* ========================================
+           HEADER STYLES
+           Title and subtitle at the top
+           ======================================== */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* ========================================
+           FORM GROUP STYLES
+           Container for each label + input pair
+           ======================================== */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333; 
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Required field indicator (red asterisk) */
+        .required {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        /* ========================================
+           INPUT FIELD STYLES
+           Styling for text inputs, email, password, select
+           ======================================== */
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        /* Password input container for positioning the toggle button */
+        .password-container {
+            position: relative;
+        }
+
+        .password-container input {
+            padding-right: 45px; /* Make room for the eye icon */
+        }
+
+        /* Eye icon toggle button */
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-toggle:hover {
+            color: #333;
+        }
+
+        /* Focus state - when user clicks into field */
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Error state for invalid inputs */
+        .form-group input.error,
+        .form-group select.error {
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+        }
+
+        /* ========================================
+           HELPER TEXT STYLES
+           Small text under inputs to guide users
+           ======================================== */
+        .helper-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .error-text {
+            font-size: 12px;
+            color: #e74c3c;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* ========================================
+           BUTTON STYLES
+           Submit button styling with hover effects
+           ======================================== */
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: rgb(112, 40, 40);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background: rgb(112, 40, 40);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(234, 102, 120, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Focus state for keyboard navigation accessibility */
+        .submit-btn:focus {
+            outline: 3px solid #ffa500;
+            outline-offset: 2px;
+        }
+
+        /* ========================================
+           LINK STYLES
+           For "Need an account?" link
+           ======================================== */
+        .form-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .form-footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ========================================
+           RESPONSIVE DESIGN
+           Adjusts for mobile screens
+           ======================================== */
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header Section with title and description -->
+        <div class="header">
+            <h1>Attendance Management System</h1>
+            <p>Ashesi University</p>
+        </div>
+
+        <!-- ========================================
+             REGISTER FORM
+             Uses HTML5 form validation attributes
+             ======================================== -->
+        <form id="RegisterForm" action="#" method="post">
+
+                <div class="form-group">
+                <label for="role">
+                    Role 
+                    <span class="required" aria-label="required">*</span>
+                </label>
+                <select id="role" name="role" required aria-required="true">
+                    <option value="" disabled selected>Select your role</option>
+                    <option value="student">Student</option>
+                    <option value="faculty">Faculty</option>
+                </select>
+            </div>
+
+            <!--First Name Input Field-->
+                <div class="form-group">
+                <!-- Label with 'for' attribute connects to input id for accessibility -->
+                <label for="first-name">
+                    First Name
+                    <span class="required" aria-label="required">*</span>
+                </label>
+                <!-- 
+                    type="text" - Standard text input
+                    required - Field cannot be empty
+                    autocomplete="name" - Browser can autofill
+                    aria-required - Screen readers announce this is required
+                -->
+                <input 
+                    type="text" 
+                    id="first-name" 
+                    name="first-name" 
+                    required 
+                    autocomplete="name"
+                    aria-required="true"
+                    placeholder="e.g., John">
+            </div>
+
+            <!--Last Name Input Field-->
+            <div class="form-group">
+                <label for="last-name">
+                    Last Name
+                    <span class="required" aria-label="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="last-name" 
+                    name="last-name" 
+                    required 
+                    autocomplete="name"
+                    aria-required="true"
+                    placeholder="e.g., Doe">
+            </div>
+
+            <!-- Email Input Field -->
+            <div class="form-group">
+                <!-- Label with 'for' attribute connects to input id for accessibility -->
+                <label for="register-email">
+                    Email Address
+                    <span class="required" aria-label="required">*</span>
+                </label>
+                <!-- 
+                    type="email" - HTML5 validates email format
+                    required - Field cannot be empty
+                    autocomplete="email" - Browser can autofill
+                    aria-required - Screen readers announce this is required
+                -->
+                <input 
+                    type="email" 
+                    id="register-email" 
+                    name="email" 
+                    required 
+                    autocomplete="email"
+                    aria-required="true"
+                    placeholder="e.g., student@ashesi.edu.gh">
+            </div>
+
+            <!-- Password Input Field -->
+            <div class="form-group">
+                <label for="login-password">
+                    Password 
+                    <span class="required" aria-label="required">*</span>
+                </label>
+                <div class="password-container">
+                    <input 
+                        type="password"
+                        id="login-password" 
+                        name="password" 
+                        required 
+                        minlength="8"
+                        maxlength="32"
+                        autocomplete="new-password"
+                        aria-required="true"
+                        placeholder="Enter your password">
+                    <button type="button" class="password-toggle" id="password-toggle-1" aria-label="Toggle password visibility">
+                        👁️
+                    </button>
+                </div>
+                <div class="helper-text">Password must be 8-32 characters with letters and special characters (!@#$%^&*(),.?":{}|<>)</div>
+                <div class="error-text" id="password-error">Password must contain letters, special characters, and be 8-32 characters long</div>
+            </div>
+
+            <!-- Confirm Password Input Field -->
+            <div class="form-group">
+                <label for="confirm-password">
+                    Confirm Password 
+                    <span class="required" aria-label="required">*</span>
+                </label>
+                <div class="password-container">
+                    <input
+                        type="password"
+                        id="confirm-password"
+                        name="confirm-password"
+                        required
+                        minlength="8"
+                        maxlength="32"
+                        autocomplete="new-password"
+                        aria-required="true"
+                        placeholder="Re-enter your password">
+                    <button type="button" class="password-toggle" id="password-toggle-2" aria-label="Toggle password visibility">
+                        👁️
+                    </button>
+                </div>
+                <div class="helper-text">Must match the password entered above</div>
+                <div class="error-text" id="confirm-password-error">Passwords do not match</div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="submit-btn">Register</button>
+
+            <!-- Footer with link to registration -->
+            <div class="form-footer">
+                Already have an account? <a href="Attendance.html">Login here</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Password validation function
+        function isValidPassword(password) {
+            const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/;
+            const hasLetters = /[a-zA-Z]/;
+            const isLongEnough = /.{8,32}/;
+
+            return (
+                hasSpecialChar.test(password) &&
+                hasLetters.test(password) &&
+                isLongEnough.test(password)
+            );
+        }
+
+        // Password toggle functionality
+        function setupPasswordToggle(toggleId, inputId) {
+            const toggle = document.getElementById(toggleId);
+            const input = document.getElementById(inputId);
+            
+            toggle.addEventListener('click', function() {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    toggle.textContent = '🙈';
+                    toggle.setAttribute('aria-label', 'Hide password');
+                } else {
+                    input.type = 'password';
+                    toggle.textContent = '👁️';
+                    toggle.setAttribute('aria-label', 'Show password');
+                }
+            });
+        }
+
+        // Form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('RegisterForm');
+            const passwordInput = document.getElementById('login-password');
+            const confirmPasswordInput = document.getElementById('confirm-password');
+            const passwordError = document.getElementById('password-error');
+            const confirmPasswordError = document.getElementById('confirm-password-error');
+
+            // Setup password toggle buttons
+            setupPasswordToggle('password-toggle-1', 'login-password');
+            setupPasswordToggle('password-toggle-2', 'confirm-password');
+
+            // Real-time password validation
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                if (password && !isValidPassword(password)) {
+                    this.classList.add('error');
+                    passwordError.style.display = 'block';
+                } else {
+                    this.classList.remove('error');
+                    passwordError.style.display = 'none';
+                }
+                
+                // Also check confirm password if it has a value
+                if (confirmPasswordInput.value) {
+                    validatePasswordMatch();
+                }
+            });
+
+            // Real-time confirm password validation
+            confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+
+            function validatePasswordMatch() {
+                if (confirmPasswordInput.value !== passwordInput.value) {
+                    confirmPasswordInput.classList.add('error');
+                    confirmPasswordError.style.display = 'block';
+                } else {
+                    confirmPasswordInput.classList.remove('error');
+                    confirmPasswordError.style.display = 'none';
+                }
+            }
+
+            // Form submission validation
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+
+                // Validate password
+                if (!isValidPassword(passwordInput.value)) {
+                    e.preventDefault();
+                    passwordInput.classList.add('error');
+                    passwordError.style.display = 'block';
+                    isValid = false;
+                }
+
+                // Validate password match
+                if (passwordInput.value !== confirmPasswordInput.value) {
+                    e.preventDefault();
+                    confirmPasswordInput.classList.add('error');
+                    confirmPasswordError.style.display = 'block';
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    alert('Please fix the errors in the form before submitting.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
