@@ -1,2 +1,2 @@
- Web Tech Project01
+ Web Tech Project
 These are the files for our ashesi attendance app
