@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Faculty Intern Dashboard — Attendance</title>
+  <style>
+    /* ------- Variables & base ------- */
+    :root{
+      --primary:#0b79d0;
+      --primary-dark:#095e9f;
+      --muted:#f5f7fa;
+      --card:#ffffff;
+      --glass: rgba(255,255,255,0.6);
+      --surface-shadow: 0 6px 18px rgba(11,121,208,0.08);
+      --radius: 10px;
+      --max-width:1200px;
+      --nav-height:64px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      background:#f2f6fb;
+      color:#222;
+      -webkit-font-smoothing:antialiased;
+    }
+    a{color:inherit}
+
+    /* ------- Top nav ------- */
+    nav.topbar{
+      height:var(--nav-height);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 18px;
+      background:linear-gradient(90deg,var(--primary),var(--primary-dark));
+      color:#fff;
+      position:sticky;
+      top:0;
+      z-index:1600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .brand h1{
+      margin:0;
+      font-size:1.05rem;
+      font-weight:700;
+      line-height:1;
+    }
+    .brand small{display:block; font-weight:400; opacity:0.9; font-size:0.78rem}
+
+    .top-actions{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .user{
+      display:flex;
+      flex-direction:column;
+      text-align:right;
+      margin-right:6px;
+    }
+    .user .name{font-weight:600}
+    .user .role{font-size:0.78rem; opacity:0.9}
+
+    .btn-ghost{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.12);
+      color:white;
+      padding:8px 10px;
+      border-radius:8px;
+      cursor:pointer;
+    }
+
+    /* ------- Layout container ------- */
+    .app{
+      display:flex;
+      gap:24px;
+      max-width:var(--max-width);
+      margin:20px auto;
+      padding:0 16px;
+      align-items:flex-start;
+      transition:margin-left .28s ease;
+      min-height: calc(100vh - var(--nav-height) - 40px);
+    }
+
+    /* ------- Sidebar (collapsible) ------- */
+    .sidebar{
+      width:260px;
+      position:fixed;
+      top:var(--nav-height);
+      left:-260px; /* hidden by default */
+      height:calc(100vh - var(--nav-height));
+      background:linear-gradient(180deg,#fdf6fb,#ffeef8);
+      box-shadow: 4px 10px 30px rgba(11,121,208,0.06);
+      border-right:1px solid rgba(0,0,0,0.03);
+      padding:16px;
+      border-radius:0 12px 12px 0;
+      z-index:1400;
+      overflow:auto;
+      transition:left .28s ease;
+    }
+    .sidebar.open{ left:0 }
+
+    .sidebar .section-title{ font-weight:700; color:var(--primary); margin-bottom:8px }
+    .sidebar .nav-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px }
+    .sidebar .nav-list button{
+      background:transparent; border:none; text-align:left; padding:10px; border-radius:8px; cursor:pointer;
+      font-weight:600; color:#222;
+    }
+    .sidebar .nav-list button:hover{ background:rgba(11,121,208,0.06) }
+
+    /* ------- Main content column ------- */
+    .content{
+      margin-left:0; /* will shift when sidebar open */
+      flex:1 1 auto;
+      transition:margin-left .28s ease;
+    }
+    .content.shift{ margin-left:260px }
+
+    /* ------- Cards / grid ------- */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+      gap:18px;
+      align-items:start;
+    }
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow: var(--surface-shadow);
+      border:1px solid rgba(10,10,10,0.02);
+    }
+    .card .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:10px;
+    }
+    .card h2{ font-size:1.05rem; margin:0 }
+    .muted{ color:#556; font-size:0.92rem }
+
+    /* ------- Courses list (original behavior) ------- */
+    .course-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px }
+    .course-item{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      background:var(--muted);
+      padding:10px 12px;
+      border-radius:8px;
+    }
+    .course-meta{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .course-code{ color:var(--primary); font-weight:700 }
+    .course-name{ font-weight:600 }
+    .course-students{ font-size:0.86rem; color:#555 }
+
+    .course-btn{
+      background:var(--primary);
+      border:none;
+      color:white;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .course-btn[disabled]{ opacity:0.6; cursor:not-allowed }
+
+    /* ------- Sessions & reports rows ------- */
+    .session-item, .report-item{
+      background:#fff;
+      border-radius:8px;
+      padding:10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border:1px solid rgba(0,0,0,0.03);
+      margin-bottom:8px;
+    }
+    .status{
+      padding:4px 8px;
+      border-radius:999px;
+      font-weight:700;
+      font-size:0.82rem;
+    }
+    .status.upcoming{ background:#dff4e4; color:#1f7a2c }
+    .status.completed{ background:#eee; color:#666 }
+
+    /* ------- FAB ------- */
+    .fab{
+      position:fixed;
+      right:20px;
+      bottom:22px;
+      background:linear-gradient(180deg,var(--primary),var(--primary-dark));
+      color:#fff;
+      border:none;
+      padding:14px 18px;
+      border-radius:999px;
+      box-shadow: 0 10px 26px rgba(11,121,208,0.18);
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+      z-index:2000;
+      cursor:pointer;
+      font-weight:800;
+    }
+
+    /* ------- Modal ------- */
+    .modal-backdrop{
+      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+      background:rgba(0,0,0,0.36); z-index:2200;
+    }
+    .modal-backdrop.open{ display:flex }
+    .modal{
+      background:var(--card);
+      width:92%;
+      max-width:460px;
+      border-radius:12px;
+      padding:16px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.18);
+      border:1px solid rgba(0,0,0,0.04);
+    }
+    .modal h3{ margin-top:0 }
+    .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:10px }
+    .field input, .field select{
+      padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); font-size:0.96rem;
+    }
+    .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:6px }
+    .btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer }
+    .btn.secondary{ background:#f1f3f6; color:#222 }
+    .btn.primary{ background:var(--primary); color:#fff }
+
+    /* ------- Responsive ------- */
+    @media (max-width:900px){
+      .app{ margin:12px auto }
+      .sidebar{ width:220px; left:-220px }
+      .sidebar.open{ left:0 }
+      .content.shift{ margin-left:220px }
+    }
+    @media (max-width:700px){
+      .brand h1{ font-size:0.98rem }
+      .user{ display:none }
+      .app{ padding-bottom:80px }
+      .fab{ right:12px; bottom:14px }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAV -->
+  <nav class="topbar" role="navigation" aria-label="Top Navigation">
+    <div class="brand" aria-hidden="false">
+      <div>
+        <h1>Attendance System</h1>
+        <small>Ashesi University</small>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button id="sidebarToggle" class="btn-ghost" aria-expanded="false" aria-controls="sidebar">☰ Menu</button>
+      <div class="user" aria-hidden="true">
+        <span class="name">John Doe</span>
+        <span class="role">Faculty Intern</span>
+      </div>
+      <button class="btn-ghost" title="Logout">Logout</button>
+    </div>
+  </nav>
+
+  <!-- APP -->
+  <div class="app" id="app">
+
+    <!-- SIDEBAR (collapsible) -->
+    <aside id="sidebar" class="sidebar" aria-hidden="true">
+      <div class="section-title">Navigation</div>
+      <nav>
+        <ul class="nav-list" role="menu" aria-label="Sidebar menu">
+          <li><button role="menuitem" data-section="dashboard">Dashboard</button></li>
+          <li><button role="menuitem" data-section="courses">Courses</button></li>
+          <li><button role="menuitem" data-section="sessions">Sessions</button></li>
+          <li><button role="menuitem" data-section="reports">Reports</button></li>
+          <li><button role="menuitem" data-section="settings">Settings</button></li>
+        </ul>
+      </nav>
+
+      <hr style="margin:12px 0; border:none; height:1px; background:rgba(0,0,0,0.02)"/>
+
+      <div class="section-title">Quick Actions</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        <button class="btn primary" id="quickAdd">➕ Add New Course</button>
+        <button class="btn secondary">📝 Schedule Session</button>
+        <button class="btn secondary">📈 Generate Report</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT (shifts when sidebar opens) -->
+    <main id="mainContent" class="content" aria-live="polite">
+      <!-- Dashboard Section -->
+      <section id="dashboard-section" class="card" role="region" aria-labelledby="dash-title">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <h2 id="dash-title">Welcome to Your Dashboard</h2>
+            <div class="muted">Manage courses, sessions and attendance from one place.</div>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top:12px">
+          <!-- Course List Card -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Course List</h2>
+              <div class="muted">Assigned</div>
+            </div>
+
+            <ul id="courses" class="course-list" aria-live="polite">
+              <!-- Example courses (from original) -->
+              <li class="course-item">
+                <div class="course-meta">
+                  <div class="course-code">CS 101</div>
+                  <div class="course-name">Introduction to Computer Science</div>
+                  <div class="course-students">45 Students Enrolled</div>
+                </div>
+                <button class="course-btn" data-href="course1.html" aria-label="Open CS 101">Open</button>
+              </li>
+
+              <li class="course-item">
+                <div class="course-meta">
+                  <div class="course-code">CS 202</div>
+                  <div class="course-name">Data Structures & Algorithms</div>
+                  <div class="course-students">38 Students Enrolled</div>
+                </div>
+                <button class="course-btn" data-href="course2.html" aria-label="Open CS 202">Open</button>
+              </li>
+
+              <li class="course-item">
+                <div class="course-meta">
+                  <div class="course-code">CS 305</div>
+                  <div class="course-name">Database Management Systems</div>
+                  <div class="course-students">42 Students Enrolled</div>
+                </div>
+                <button class="course-btn" data-href="course3.html" aria-label="Open CS 305">Open</button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Sessions Card -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Upcoming Sessions</h2>
+              <div class="muted">Next events</div>
+            </div>
+            <div class="session-item">
+              <div>
+                <div style="font-weight:700; color:var(--primary)">CS 101 — Lecture</div>
+                <div class="muted" style="margin-top:4px">Monday, Oct 14, 2025 • 10:00 AM - 11:30 AM</div>
+              </div>
+              <div><span class="status upcoming">Upcoming</span></div>
+            </div>
+
+            <div class="session-item">
+              <div>
+                <div style="font-weight:700; color:var(--primary)">CS 202 — Lab</div>
+                <div class="muted" style="margin-top:4px">Tuesday, Oct 15, 2025 • 2:00 PM - 4:00 PM</div>
+              </div>
+              <div><span class="status upcoming">Upcoming</span></div>
+            </div>
+
+            <div class="session-item">
+              <div>
+                <div style="font-weight:700; color:var(--primary)">CS 305 — Tutorial</div>
+                <div class="muted" style="margin-top:4px">Friday, Oct 11, 2025 • 9:00 AM - 10:00 AM</div>
+              </div>
+              <div><span class="status completed">Completed</span></div>
+            </div>
+          </div>
+
+          <!-- Reports Card -->
+          <div class="card">
+            <div class="card-header">
+              <h2>Recent Reports</h2>
+              <div class="muted">Last results</div>
+            </div>
+
+            <div class="report-item">
+              <div>
+                <div style="font-weight:700; color:var(--primary)">CS 101 — Weekly Attendance</div>
+                <div class="muted">Oct 1 - 7, 2025</div>
+              </div>
+              <div><button class="btn primary">View</button></div>
+            </div>
+
+            <div class="report-item">
+              <div>
+                <div style="font-weight:700; color:var(--primary)">CS 202 — Monthly Summary</div>
+                <div class="muted">September 2025</div>
+              </div>
+              <div><button class="btn primary">View</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COURSES section (toggleable by sidebar nav) -->
+      <section id="courses-section" class="card" style="display:none" role="region" aria-labelledby="courses-title">
+        <h2 id="courses-title">Course Management</h2>
+        <div class="muted" style="margin-bottom:12px">View and manage all assigned courses</div>
+
+        <div class="card" style="margin-top:12px">
+          <div class="card-header">
+            <h2>All Courses</h2>
+            <div class="muted">Manage students, auditors</div>
+          </div>
+          <ul class="course-list" id="allCourses">
+            <!-- duplicate example entries but management context -->
+            <li class="course-item">
+              <div class="course-meta">
+                <div class="course-code">CS 101</div>
+                <div class="course-name">Introduction to Computer Science</div>
+                <div class="course-students">45 Students Enrolled</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <button class="course-btn" data-href="course1.html">Open</button>
+                <button class="btn secondary" style="margin-top:6px">Manage</button>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Sessions, Reports, Settings sections (skeletons) -->
+      <section id="sessions-section" class="card" style="display:none"><h2>Session Management</h2><div class="muted">Schedule & edit sessions</div></section>
+      <section id="reports-section" class="card" style="display:none"><h2>Attendance Reports</h2><div class="muted">Generate or export reports</div></section>
+      <section id="settings-section" class="card" style="display:none"><h2>Settings</h2><div class="muted">Account & preferences</div></section>
+
+    </main>
+  </div>
+
+  <!-- FAB -->
+  <button id="fab" class="fab" aria-label="Add course">➕ Add course</button>
+
+  <!-- Add Course Modal -->
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal" role="document" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Add a Course</h3>
+
+      <div class="field">
+        <label for="courseName">Course name</label>
+        <input id="courseName" type="text" placeholder="e.g., Introduction to HTML" />
+      </div>
+
+      <div class="field">
+        <label for="courseSection">Section (optional)</label>
+        <input id="courseSection" type="text" placeholder="e.g., Section A" />
+      </div>
+
+      <div class="field">
+        <label for="courseHref">Course link or code (optional)</label>
+        <input id="courseHref" type="text" placeholder="e.g., course1.html or CS101" />
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end">
+        <button id="cancelBtn" class="btn secondary">Cancel</button>
+        <button id="saveBtn" class="btn primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ========= UI references ========= */
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const app = document.getElementById('app');
+    const mainContent = document.getElementById('mainContent');
+    const fab = document.getElementById('fab');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const quickAdd = document.getElementById('quickAdd');
+
+    const courseNameInput = document.getElementById('courseName');
+    const courseSectionInput = document.getElementById('courseSection');
+    const courseHrefInput = document.getElementById('courseHref');
+
+    const coursesContainer = document.getElementById('courses');
+    const allCoursesList = document.getElementById('allCourses');
+
+    /* ========= Sidebar toggle (collapsible) ========= */
+    function openSidebar(){
+      sidebar.classList.add('open');
+      sidebar.setAttribute('aria-hidden','false');
+      sidebarToggle.setAttribute('aria-expanded','true');
+      mainContent.classList.add('shift');
+    }
+    function closeSidebar(){
+      sidebar.classList.remove('open');
+      sidebar.setAttribute('aria-hidden','true');
+      sidebarToggle.setAttribute('aria-expanded','false');
+      mainContent.classList.remove('shift');
+    }
+    sidebarToggle.addEventListener('click', () => {
+      if (sidebar.classList.contains('open')) closeSidebar();
+      else openSidebar();
+    });
+
+    // close sidebar when clicking outside on wide screens (optional UX)
+    document.addEventListener('click', (e) => {
+      if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target) && sidebar.classList.contains('open')) {
+        // small screens keep sidebar open; only auto-close on medium+ widths
+        if (window.innerWidth > 700) closeSidebar();
+      }
+    });
+
+    /* ========= Section switching via sidebar nav ========= */
+    document.querySelectorAll('.nav-list [data-section]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const section = e.currentTarget.dataset.section + '-section';
+        // hide all main sections
+        ['dashboard','courses','sessions','reports','settings'].forEach(s => {
+          const el = document.getElementById(s + '-section');
+          if (el) el.style.display = 'none';
+        });
+        const target = document.getElementById(section);
+        if (target) target.style.display = 'block';
+        // close sidebar after selection on small screens
+        if (window.innerWidth <= 900) closeSidebar();
+      });
+    });
+
+    /* ========= Modal open/close & focus management ========= */
+    function openModal(){
+      modalBackdrop.classList.add('open');
+      modalBackdrop.setAttribute('aria-hidden','false');
+      // small delay then focus first input
+      setTimeout(()=> courseNameInput.focus(), 80);
+    }
+    function closeModal(){
+      modalBackdrop.classList.remove('open');
+      modalBackdrop.setAttribute('aria-hidden','true');
+      courseNameInput.value = '';
+      courseSectionInput.value = '';
+      courseHrefInput.value = '';
+      // return focus to FAB
+      setTimeout(()=> fab.focus(), 40);
+    }
+
+    fab.addEventListener('click', openModal);
+    quickAdd.addEventListener('click', openModal);
+    cancelBtn.addEventListener('click', closeModal);
+
+    // click outside modal to close
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) closeModal();
+    });
+
+    // close modal on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalBackdrop.classList.contains('open')) {
+        closeModal();
+      }
+    });
+
+    /* ========= Event delegation for Open buttons ========= */
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.course-btn');
+      if (!btn) return;
+      const href = btn.getAttribute('data-href');
+      if (href) {
+        // simple navigation - replace with router or dynamic view as needed
+        window.location.assign(href);
+      } else {
+        btn.setAttribute('disabled','true');
+        alert('No course page set for this course.');
+      }
+    });
+
+    /* ========= Save new course (append to lists) ========= */
+    function createCourseItem(name, section, href){
+      const li = document.createElement('li');
+      li.className = 'course-item';
+
+      const meta = document.createElement('div');
+      meta.className = 'course-meta';
+
+      const code = document.createElement('div');
+      code.className = 'course-code';
+      code.textContent = href && href.toUpperCase().startsWith('CS') ? href.toUpperCase() : name.split(' ')[0] || name;
+
+      const cname = document.createElement('div');
+      cname.className = 'course-name';
+      cname.textContent = name;
+
+      const students = document.createElement('div');
+      students.className = 'course-students';
+      students.textContent = section ? section : 'No section';
+
+      meta.appendChild(code);
+      meta.appendChild(cname);
+      meta.appendChild(students);
+
+      const openBtn = document.createElement('button');
+      openBtn.className = 'course-btn';
+      openBtn.textContent = 'Open';
+      openBtn.setAttribute('aria-label', `Open ${name}`);
+      if (href) openBtn.setAttribute('data-href', href);
+
+      li.appendChild(meta);
+      li.appendChild(openBtn);
+
+      return li;
+    }
+
+    saveBtn.addEventListener('click', () => {
+      const name = courseNameInput.value.trim();
+      const section = courseSectionInput.value.trim();
+      const href = courseHrefInput.value.trim();
+
+      if (!name){
+        alert('Please enter a course name.');
+        courseNameInput.focus();
+        return;
+      }
+
+      const item = createCourseItem(name, section, href);
+
+      // append to dashboard course list and to the management list
+      coursesContainer.appendChild(item);
+      // duplicate for allCourses (management) with Manage button
+      const managementItem = item.cloneNode(true);
+      const manageBtn = document.createElement('button');
+      manageBtn.className = 'btn secondary';
+      manageBtn.textContent = 'Manage';
+      managementItem.querySelector('.course-btn').style.marginBottom = '6px';
+      managementItem.appendChild(manageBtn);
+      allCoursesList.appendChild(managementItem);
+
+      closeModal();
+    });
+
+    /* ========= Small UX touches ========= */
+    // keyboard accessibility: trap tab inside modal (light)
+    document.addEventListener('keydown', (e) => {
+      if (!modalBackdrop.classList.contains('open')) return;
+      if (e.key !== 'Tab') return;
+      const focusable = modalBackdrop.querySelectorAll('input,select,button');
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first){
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last){
+        e.preventDefault(); first.focus();
+      }
+    });
+
+    // preserve sidebar state across resizes for UX
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 1000 && !sidebar.classList.contains('open')) {
+        // keep closed by default on wide screens; no-op
+      }
+    });
+
+    // initial small setup: show dashboard section only
+    (function init() {
+      ['dashboard','courses','sessions','reports','settings'].forEach(s => {
+        const el = document.getElementById(s + '-section');
+        if (!el) return;
+        el.style.display = (s === 'dashboard') ? 'block' : 'none';
+      });
+    })();
+
+  </script>
+</body>
+</html>
