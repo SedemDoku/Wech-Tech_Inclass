@@ -1,5 +1,0 @@
-Below are links to access the project files from github, and the upload server.
-
-https://github.com/SedemDoku/Web-Tech-Project01
-
-http://169.239.251.102:341/~sedem.doku/upload.php
